@@ -73,12 +73,12 @@ async def add_image_record(file: UploadFile = File(...)):
 @router.post("/add-record/audio/transcribe")
 async def add_image_record(file: UploadFile = File(...)):
     contents = await file.read()
+    print("file type: ", type(contents))
+    transcribtion_result = await whisper_transcribe(contents)
 
-    ocr_result = await whisper_transcribe(contents)
-
-    if not ocr_result:
-        return {"error": "Failed to extract text from the image."}
+    if not transcribtion_result:
+        return {"error": "Failed to extract the transcription from the audio."}
 
     return {
-        "transcription": ocr_result
+        "transcription": transcribtion_result
     }
