@@ -10,4 +10,5 @@ class HealthRecord(BaseModel):
 
 
 class TextInput(BaseModel):
+    input_date: str
     text: str
