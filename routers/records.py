@@ -5,6 +5,8 @@ from models.tables import health_records
 from db import database
 from services.data_extraction import extract_health_data
 from services.ocr import OCR
+from services.stt import whisper_transcribe
+
 from datetime import datetime
 
 router = APIRouter()
@@ -68,3 +70,15 @@ async def add_image_record(file: UploadFile = File(...)):
     last_record_id = await database.execute(query)
     return {"id": last_record_id, "record": record}
 
+@router.post("/add-record/audio/transcribe")
+async def add_image_record(file: UploadFile = File(...)):
+    contents = await file.read()
+
+    ocr_result = await whisper_transcribe(contents)
+
+    if not ocr_result:
+        return {"error": "Failed to extract text from the image."}
+
+    return {
+        "transcription": ocr_result
+    }

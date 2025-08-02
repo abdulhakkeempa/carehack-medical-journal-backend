@@ -12,22 +12,27 @@ from groq import Groq
 client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 
 # Specify the path to the audio file
-filename =  "audio.mp3" # Replace with your audio file!
+# filename =  "audio.mp3" # Replace with your audio file!
 
-# Open the audio file
-with open(filename, "rb") as file:
-    # Create a transcription of the audio file
+def whisper_transcribe(file):
+    # with open(filename, "rb") as file:
+        # Create a transcription of the audio file
     transcription = client.audio.transcriptions.create(
-      file=file, # Required audio file
-      model="whisper-large-v3-turbo", # Required model to use for transcription
-    #   prompt="Specify context or spelling",  # Optional
-    #   response_format="verbose_json",  # Optional
-    #   timestamp_granularities = ["word", "segment"], # Optional (must set response_format to "json" to use and can specify "word", "segment" (default), or both)
-      language="en",  # Optional
-      temperature=0.0  # Optional
+        file=file, # Required audio file
+        model="whisper-large-v3-turbo", # Required model to use for transcription
+        #   prompt="Specify context or spelling",  # Optional
+        #   response_format="verbose_json",  # Optional
+        #   timestamp_granularities = ["word", "segment"], # Optional (must set response_format to "json" to use and can specify "word", "segment" (default), or both)
+        language="en",  # Optional
+        temperature=0.0  # Optional
     )
+
+    return transcription.text
+
+# print(whisper_transcribe(filename))
+
     # To print only the transcription text, you'd use print(transcription.text) (here we're printing the entire transcription object to access timestamps)
-print(json.dumps(transcription, indent=2, default=str))
+# print(json.dumps(transcription, indent=2, default=str))
 # def recognize_from_microphone():
 #      # This example requires environment variables named "SPEECH_KEY" and "ENDPOINT"
 #      # Replace with your own subscription key and endpoint, the endpoint is like : "https://YourServiceRegion.api.cognitive.microsoft.com"
