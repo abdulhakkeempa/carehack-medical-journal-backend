@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from db import database, engine
 from models.tables import health_records
-from routers import records
+from routers import records, chat
 from db import metadata
 
 app = FastAPI()
@@ -19,3 +19,4 @@ async def shutdown():
     await database.disconnect()
 
 app.include_router(records.router)
+app.include_router(chat.router)
