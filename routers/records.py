@@ -72,7 +72,7 @@ async def add_image_record(file: UploadFile = File(...)):
     return {"id": last_record_id, "record": record}
 
 @router.post("/add-record/audio/transcribe")
-async def add_image_record(file: UploadFile = File(...)):
+async def transcribe(file: UploadFile = File(...)):
     c = await file.read()
     print("file type: ", type(file.read()))
     # suffix = os.path.splitext(file.filename)[-1]
