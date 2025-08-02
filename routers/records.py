@@ -6,7 +6,8 @@ from db import database
 from services.data_extraction import extract_health_data
 from services.ocr import OCR
 from services.stt import whisper_transcribe
-
+import os
+import tempfile
 from datetime import datetime
 
 router = APIRouter()
@@ -72,8 +73,14 @@ async def add_image_record(file: UploadFile = File(...)):
 
 @router.post("/add-record/audio/transcribe")
 async def add_image_record(file: UploadFile = File(...)):
-    contents = await file.read()
-    print("file type: ", type(contents))
+    print("file type: ", type(file.read()))
+    suffix = os.path.splitext(file.filename)[-1]
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(await file.read())
+        contents = tmp.name
+
+    # contents = await file.read()
+    
     transcribtion_result = await whisper_transcribe(contents)
 
     if not transcribtion_result:
