@@ -73,15 +73,16 @@ async def add_image_record(file: UploadFile = File(...)):
 
 @router.post("/add-record/audio/transcribe")
 async def add_image_record(file: UploadFile = File(...)):
+    c = await file.read()
     print("file type: ", type(file.read()))
-    suffix = os.path.splitext(file.filename)[-1]
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        tmp.write(await file.read())
-        contents = tmp.name
+    # suffix = os.path.splitext(file.filename)[-1]
+    # with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+    #     tmp.write(await file.read())
+    #     contents = tmp.name
 
     # contents = await file.read()
     
-    transcribtion_result = await whisper_transcribe(contents)
+    transcribtion_result = await whisper_transcribe(c)
 
     if not transcribtion_result:
         return {"error": "Failed to extract the transcription from the audio."}
