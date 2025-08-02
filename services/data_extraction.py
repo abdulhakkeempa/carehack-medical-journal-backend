@@ -68,9 +68,3 @@ def extract_health_data(input_date, journal_entry):
   )
 
   print(response.choices[0].message.content)
-
-
-
-
-
-print(extract_health_data("2025-08-02", "I felt very anxious today, had trouble sleeping last night."))
