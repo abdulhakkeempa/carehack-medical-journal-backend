@@ -30,10 +30,10 @@ def whisper_transcribe(file):
 
     return transcription.text
 
-filename =  "audio.mp3" # Replace with your audio file!
+# filename =  "audio.mp3" # Replace with your audio file!
 
 
-print(whisper_transcribe(filename))
+# print(whisper_transcribe(filename))
 
     # To print only the transcription text, you'd use print(transcription.text) (here we're printing the entire transcription object to access timestamps)
 # print(json.dumps(transcription, indent=2, default=str))
