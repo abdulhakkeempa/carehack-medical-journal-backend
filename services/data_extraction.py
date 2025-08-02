@@ -1,6 +1,9 @@
 from dotenv import load_dotenv
 import os
 from openai import AzureOpenAI
+from pydantic import BaseModel
+import re
+import json
 
 load_dotenv()
 
@@ -16,7 +19,6 @@ client = AzureOpenAI(
     azure_endpoint=endpoint,
     api_key=subscription_key,
 )
-
 
 def extract_health_data(input_date, journal_entry):
   prompt = f"""
@@ -67,4 +69,20 @@ def extract_health_data(input_date, journal_entry):
       model=deployment
   )
 
-  print(response.choices[0].message.content)
+  match = re.search(r"```json\n(.*?)\n```", response.choices[0].message.content, re.DOTALL)
+
+  if match:
+      json_data = match.group(1).strip()
+      return json.loads(json_data)
+  else:
+     return None
+
+  
+# # import json
+
+# res = extract_health_data("2024-12-01", "I felt very anxious today, had a headache, and took my medication in the morning.")
+
+# # parsed_data = json.loads(res)
+
+# # print(parsed_data)
+# print(res)
