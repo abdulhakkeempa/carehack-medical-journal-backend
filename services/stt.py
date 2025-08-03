@@ -16,7 +16,7 @@ client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 def whisper_transcribe(file):
     # with open(filename, "rb") as file:
         # Create a transcription of the audio file
-    print("file type: ", type(file))
+    # print("file type: ", type(file))
     transcription = client.audio.transcriptions.create(
         file=file, # Required audio file
         

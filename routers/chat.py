@@ -2,6 +2,10 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from openai import AzureOpenAI
 import os
 from dotenv import load_dotenv
+import asyncio
+from models.tables import health_records
+from db import database
+
 
 load_dotenv()
 
@@ -67,14 +71,69 @@ Maintain emotional safety and trust above all else.
 """
 
 
+async def fetch_user_timeline_summaries():
+    """
+    Fetches the user's health records and summarizes them into a timeline.
+    """
+    user_id = 1
+
+    query = health_records.select().where(health_records.c.user_id == user_id)
+    records = await database.fetch_all(query)
+
+    timeline = "\n".join([
+        f"{r['date']}: {r['condition']} ({r['type']})" + (f" - {r['remarks']}" if r['remarks'] else "")
+        for r in records
+    ])
+
+    summary_prompt = f"Summarize the following medical journal entries for a user as a timeline, highlighting key events and trends.\n\n{timeline}"
+    summary_response = client.chat.completions.create(
+        messages=[{"role": "system", "content": "You are a medical journal summarizer."}, {"role": "user", "content": summary_prompt}],
+        max_tokens=512,
+        temperature=0.7,
+        model=deployment
+    )
+    timeline_summary = summary_response.choices[0].message.content
+
+    return timeline_summary.strip()
+
+
+timeline_summary = """
+Timeline Summary: ### Timeline Summary of Medical Journal Entries
+
+**2025-08-01**
+- **Key Event:** High temperature reported (physical).
+- **Trend:** Possible onset of illness or fever-related condition.
+
+**2025-08-02**
+- **Key Events:**
+  - Feeling cold and experiencing headache (physical).
+  - Several entries lack health-related information or are incomplete, with one noting gratitude.
+- **Trend:** Symptoms (cold and headache) may indicate progression of illness. Lack of detailed observations makes it harder to track health patterns effectively.
+
+**2025-08-03**
+- **Key Event:** Feeling lonely (emotional).
+- **Trend:** Emergence of emotional distress, possibly linked to earlier physical symptoms or a separate issue.
+
+### Key Observations:
+- Physical health issues (fever, cold, headache) arose on 2025-08-01 and 2025-08-02, potentially indicating a short-term illness.
+- Emotional health concern (loneliness) noted on 2025-08-03, suggesting a shift in focus from physical to emotional well-being.
+- Gaps in detailed journaling may hinder comprehensive health tracking.
+
+### Recommendations:
+- Consistently record both physical and emotional health observations for better trend analysis.
+- Explore connections between physical symptoms and emotional states.
+"""
+
+
 @router.websocket("/ws/chat")
 async def chat_websocket(websocket: WebSocket):
     await websocket.accept()
-    messages = [{"role": "system","content": prompt}]
+    # timeline_summary = await fetch_user_timeline_summaries()
+    # print("Timeline Summary:", timeline_summary)
+    system_context = prompt + f"\n\nUser's medical timeline summary:\n{timeline_summary}"
+    messages = [{"role": "system", "content": system_context}]
     try:
         while True:
-            data = await websocket.receive_text()
-            messages.append({"role": "user", "content": data})
             response = client.chat.completions.create(
                 messages=messages,
                 max_tokens=4096,
@@ -82,9 +141,13 @@ async def chat_websocket(websocket: WebSocket):
                 top_p=1.0,
                 model=deployment
             )
+
             llm_reply = response.choices[0].message.content
-            # messages.append({"role": "assistant", "content": llm_reply})
+            messages.append({"role": "assistant", "content": llm_reply})
             await websocket.send_text(llm_reply)
+
+            data = await websocket.receive_text()
+            messages.append({"role": "user", "content": data})
     except WebSocketDisconnect:
         print("WebSocket disconnected")
         
